@@ -38,11 +38,11 @@ app.get("/receivenotes", (req, res) => {
 });
 
 app.get("/deletenote", (req, res) => {
-  Note.findByIdAndDelete(req.query._id, (err, doc) => {
+  Note.findByIdAndDelete(req.query._id, (err, deletedDoc) => {
     if (err) {
-      res.json({ success: false, message: "Gives error" });
+      res.json({ success: false, message: "Could not delete Note" });
     } else {
-      res.json({ success: true, doc: doc });
+      res.json({ success: true, doc: deletedDoc });
     }
   });
 });
@@ -50,7 +50,7 @@ app.get("/deletenote", (req, res) => {
 app.post("/sendnote", (req, res) => {
   Note.create(req.body, (err, data) => {
     if (err) {
-      res.json({ success: false, message: "Gives error" });
+      res.json({ success: false, message: "Could not save Note" });
     } else {
       res.json({ success: true, data: data });
     }
@@ -65,7 +65,7 @@ app.post("/updatenote", (req, res) => {
     (err, data) => {
       console.log("API", req.query._id, req.body);
       if (err) {
-        res.json({ success: false, message: "Gives error" });
+        res.json({ success: false, message: "Could not update Note" });
       } else {
         res.json({ success: true, data: data });
       }
