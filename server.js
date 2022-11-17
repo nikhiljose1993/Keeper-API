@@ -1,8 +1,14 @@
 import express from "express";
 import mongoose from "mongoose";
+import cors from "cors";
+import bodyParser from "body-parser";
+
+mongoose.connect("mongodb://127.0.0.1:27017/notesDB");
 
 const app = express();
 const port = 5000;
+app.use(cors());
+app.use(bodyParser.json());
 
 const noteSchema = new mongoose.Schema({
   title: {
@@ -15,25 +21,6 @@ const noteSchema = new mongoose.Schema({
   },
 });
 
-const data = [
-  {
-    title: "adipiscing elit",
-    note: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-  },
-  {
-    title: "amet",
-    note: "Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
-  },
-  {
-    title: "nostrud",
-    note: "Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur",
-  },
-  {
-    title: "minimminim",
-    note: "Ut enim ad minimminim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat",
-  },
-];
-
 const Note = mongoose.model("Note", noteSchema);
 
 app.get("/", (req, res) => {
@@ -41,10 +28,50 @@ app.get("/", (req, res) => {
 });
 
 app.get("/receivenotes", (req, res) => {
-  res.send({ notes: data });
+  Note.find({}, (err, foundNotes) => {
+    if (foundNotes) {
+      res.send(JSON.stringify({ notes: foundNotes }));
+    } else {
+      res.send(JSON.stringify({ notes: [] }));
+    }
+  });
 });
 
-app.post("/sendnotes", (req, res) => {});
+app.get("/deletenote", (req, res) => {
+  Note.findByIdAndDelete(req.query._id, (err, doc) => {
+    if (err) {
+      res.json({ success: false, message: "Gives error" });
+    } else {
+      res.json({ success: true, doc: doc });
+    }
+  });
+});
+
+app.post("/sendnote", (req, res) => {
+  Note.create(req.body, (err, data) => {
+    if (err) {
+      res.json({ success: false, message: "Gives error" });
+    } else {
+      res.json({ success: true, data: data });
+    }
+  });
+});
+
+app.post("/updatenote", (req, res) => {
+  Note.findByIdAndUpdate(
+    req.query._id,
+    { $set: req.body },
+    { new: true },
+    (err, data) => {
+      console.log("API", req.query._id, req.body);
+      if (err) {
+        res.json({ success: false, message: "Gives error" });
+      } else {
+        res.json({ success: true, data: data });
+      }
+    }
+  );
+});
 
 app.listen(port, function () {
   console.log("The server is now started at port" + port);
